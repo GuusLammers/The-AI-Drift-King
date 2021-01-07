@@ -23,7 +23,7 @@ class Car:
 	# global class variables
 	CAR_ACCELERATION = 0.4
 	CAR_NATURAL_DECELERATION = 0.05
-	CAR_MAX_FORWARD_SPEED = 3
+	CAR_MAX_FORWARD_SPEED = 4
 	CAR_MAX_BACKWARD_SPEED = 2
 	CAR_TURNING_VELOCITY = 3
 	CAR_IMAGES = [CAR_BLUE, CAR_RED, CAR_ORANGE]
@@ -33,6 +33,7 @@ class Car:
 		self.position = (x_pos, y_pos)
 		self.speed = 0
 		self.angle = 0
+		self.car_angle = 0
 		self.time_count = 0
 		self.image = pg.transform.rotate(self.random_car(), self.angle)
 
