@@ -32,10 +32,10 @@ class Car:
 	def __init__(self, x_pos, y_pos):
 		self.position = (x_pos, y_pos)
 		self.speed = 0
-		self.angle = 0
 		self.car_angle = 0
+		self.speed_angle = self.car_angle
 		self.time_count = 0
-		self.image = pg.transform.rotate(self.random_car(), self.angle)
+		self.image = pg.transform.rotate(self.random_car(), self.car_angle)
 
 	# randomizes the cars color	
 	def random_car(self):
@@ -69,47 +69,80 @@ class Car:
 			else:
 				self.speed = 0 
 
-	# calculates cars new angle if it turned at all			
-	def angle_change(self, left, right):
+	# calculates cars new angle if it turned 		
+	def car_angle_change(self, left, right):
 		# if the cars speed is not zero
-		if self. speed != 0:
+		if self.speed != 0:
 			# if car is moving forward
 			if self.speed > 0:
 				# if turning left
 				if left:
-					self.angle -= self.CAR_TURNING_VELOCITY
+					self.car_angle -= self.CAR_TURNING_VELOCITY
 				# if turning right
 				if right:
-					self.angle += self.CAR_TURNING_VELOCITY
+					self.car_angle += self.CAR_TURNING_VELOCITY
 
 			# if car is moving backward
 			if self.speed < 0:
 				# if turning right
 				if left:
-					self.angle += self.CAR_TURNING_VELOCITY
+					self.car_angle += self.CAR_TURNING_VELOCITY
 				# if turning left
 				if right:
-					self.angle -= self.CAR_TURNING_VELOCITY				
+					self.car_angle -= self.CAR_TURNING_VELOCITY				
 			
 		# check if angle is greater than 360
-		if self.angle > 360:
-			self.angle -= 360	
+		if self.car_angle > 360:
+			self.car_angle -= 360	
 
 		# check if angle is less than 0
-		if self.angle < 0:
-			self.angle += 360	
+		if self.car_angle < 0:
+			self.car_angle += 360	
+
+	# calculates cars new direction of travel (drift function)	
+	def speed_angle_change(self):
+		# if car is moving forward
+		if self.speed > 0:
+			# if speed angle is within a degree of car angle
+			if abs(self.speed_angle - self.car_angle) <= 1:
+				self.speed_angle = self.car_angle
+
+			else:
+				# calculate the percent of the maximum speed the car is traveling at
+				percent_max_speed = self.speed / self.CAR_MAX_FORWARD_SPEED	
+				# calculate change in speed angle
+				speed_angle_change = abs(self.speed_angle - self.car_angle) - 0.9 * abs(self.speed_angle - self.car_angle) * percent_max_speed
+
+				# if turning left
+				if self.car_angle > self.speed_angle:
+					# if the angle difference is greater than 40
+					if abs(self.speed_angle - self.car_angle) > 40:
+						self.speed_angle = self.car_angle - 40
+
+					else:	
+						self.speed_angle += speed_angle_change
+
+				# if turning right	
+				if self.car_angle < self.speed_angle:
+					# if the angle difference is greater than 40
+					if abs(self.speed_angle - self.car_angle) > 40:
+						self.speed_angle = self.car_angle + 40
+
+					else:	
+						self.speed_angle -= speed_angle_change
 
 	# move car		
 	def move(self, forward, backward, left, right):
 		# update speed and angle
 		self.speed_change(forward, backward)
-		self.angle_change(left, right)
+		self.car_angle_change(left, right)
+		self.speed_angle_change()
 
 		# check if car is moving forward
 		if self.speed > 0:
 			# split up velocity vector into x and y components
-			x_velocity = self.speed * math.cos(math.radians(self.angle)) 
-			y_velocity = self.speed * math.sin(math.radians(self.angle))	
+			x_velocity = self.speed * math.cos(math.radians(self.speed_angle)) 
+			y_velocity = self.speed * math.sin(math.radians(self.speed_angle))	
 			# update position
 			self.position = (self.position[0] + x_velocity, self.position[1] + y_velocity)
 
@@ -117,17 +150,19 @@ class Car:
 		# check if car is moving backward	
 		if self.speed < 0:
 			# split up velocity vector into x and y components
-			x_velocity = -self.speed * math.cos(math.radians(self.angle - 180)) 
-			y_velocity = -self.speed * math.sin(math.radians(self.angle - 180))	
+			x_velocity = -self.speed * math.cos(math.radians(self.car_angle - 180)) 
+			y_velocity = -self.speed * math.sin(math.radians(self.car_angle - 180))	
 			# update position
 			self.position = (self.position[0] + x_velocity, self.position[1] + y_velocity)
 
 	# draw car		
 	def draw (self, window):
 		# rotate image
-		rotated_image = pg.transform.rotate(self.image, -self.angle)
+		rotated_image = pg.transform.rotate(self.image, -self.car_angle)
+		# determine center point of car
+		center = rotated_image.get_rect(center=self.image.get_rect(topleft=self.position).center)	
 		# draw car
-		window.blit(rotated_image, self.position)
+		window.blit(rotated_image, center.bottomleft)
 
 
 # update window
