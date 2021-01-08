@@ -27,8 +27,7 @@ class Car:
 	CAR_MAX_BACKWARD_SPEED = 2
 	CAR_TURNING_VELOCITY = 3
 	CAR_IMAGES = [CAR_BLUE, CAR_RED, CAR_ORANGE]
-	#CAR_MASS
-
+	
 	def __init__(self, x_pos, y_pos):
 		self.position = (x_pos, y_pos)
 		self.speed = 0
@@ -164,13 +163,43 @@ class Car:
 		# draw car
 		window.blit(rotated_image, center.bottomleft)
 
+	# get mask of car
+	def get_mask(self):
+		return pg.mask.from_surface(self.image)	
+	
+
+class Track:
+
+	def __init__(self):
+		self.image = TRACK
+		self.mask = pg.mask.from_surface(self.image)	
+
+	# draw track
+	def draw(self, window):
+		window.blit(self.image, (0, 0))	
+
+	# checks if car goes off track	
+	def collide(self, car):
+		# get car mask
+		car_mask = car.get_mask()
+		# calculate offset
+		offset = (round(car.position[0]), round(car.position[1]))
+		# check collision
+		collide = car_mask.overlap(self.mask, offset)
+
+		# return True if collision occured, False if not
+		if collide:
+			return True
+
+		return False
+
 
 # update window
-def update_window(window, car):
+def update_window(window, car, track):
 	# fill background
 	window.fill((128, 128, 128))
 	# draw track
-	window.blit(TRACK, (0, 0))
+	track.draw(window)
 	# draw car
 	car.draw(window)
 	# update window
@@ -184,6 +213,9 @@ def main():
 
 	# initialize car
 	car = Car(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2)
+
+	# initialize track
+	track = Track()
 
 	# initialize clock
 	clock = pg.time.Clock()
@@ -240,9 +272,15 @@ def main():
 							
 		# move car			
 		car.move(up, down, left, right)
+
+		print(track.collide(car))
+
+		# check if car wen toff track
+		if track.collide(car):
+			print('collide')
 					
 		# update window			
-		update_window(window, car)	
+		update_window(window, car, track)	
 
 	# quit pygame application	
 	pg.quit()			
