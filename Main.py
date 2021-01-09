@@ -17,6 +17,7 @@ CAR_ORANGE = pg.transform.scale(pg.image.load(os.path.join('images', 'orange_car
 
 # colours
 WHITE = (255, 255, 255)
+RED = (0, 0, 255)
 
 # car class
 class Car:
@@ -35,6 +36,7 @@ class Car:
 		self.speed_angle = self.car_angle
 		self.time_count = 0
 		self.image = pg.transform.rotate(self.random_car(), self.car_angle)
+		self.dead = False
 
 	# randomizes the cars color	
 	def random_car(self):
@@ -88,15 +90,7 @@ class Car:
 					self.car_angle += self.CAR_TURNING_VELOCITY
 				# if turning left
 				if right:
-					self.car_angle -= self.CAR_TURNING_VELOCITY				
-			
-		# check if angle is greater than 360
-		if self.car_angle > 360:
-			self.car_angle -= 360	
-
-		# check if angle is less than 0
-		if self.car_angle < 0:
-			self.car_angle += 360	
+					self.car_angle -= self.CAR_TURNING_VELOCITY					
 
 	# calculates cars new direction of travel (drift function)	
 	def speed_angle_change(self):
@@ -154,12 +148,32 @@ class Car:
 			# update position
 			self.position = (self.position[0] + x_velocity, self.position[1] + y_velocity)
 
+	# draw lines
+	def draw_lines(self, window):
+		# rotate image
+		rotated_image = pg.transform.rotate(self.image, -self.car_angle)
+		# determine center point of car
+		new_rectangle = rotated_image.get_rect(center=self.image.get_rect(topleft=self.position).center)
+		center = pg.Rect(new_rectangle.bottomleft[0], new_rectangle.bottomleft[1], new_rectangle[2], new_rectangle[3]).center
+
+		# draw lines 		
+		# parallel
+		pg.draw.line(window, RED, center, (center[0] + 300 * math.cos(math.radians(self.car_angle)), center[1] + 300 * math.sin(math.radians(self.car_angle))))
+		# perpendicular
+		pg.draw.line(window, RED, center, (center[0] + 300 * math.cos(math.radians(self.car_angle - 90)), center[1] + 300 * math.sin(math.radians(self.car_angle - 90))))
+		pg.draw.line(window, RED, center, (center[0] + 300 * math.cos(math.radians(self.car_angle + 90)), center[1] + 300 * math.sin(math.radians(self.car_angle + 90))))
+		# 45 degrees
+		pg.draw.line(window, RED, center, (center[0] + 300 * math.cos(math.radians(self.car_angle - 45)), center[1] + 300 * math.sin(math.radians(self.car_angle - 45))))
+		pg.draw.line(window, RED, center, (center[0] + 300 * math.cos(math.radians(self.car_angle + 45)), center[1] + 300 * math.sin(math.radians(self.car_angle + 45))))
+
 	# draw car		
 	def draw (self, window):
 		# rotate image
 		rotated_image = pg.transform.rotate(self.image, -self.car_angle)
 		# determine center point of car
 		center = rotated_image.get_rect(center=self.image.get_rect(topleft=self.position).center)	
+		# draw lines
+		self.draw_lines(window)
 		# draw car
 		window.blit(rotated_image, center.bottomleft)
 
@@ -183,7 +197,8 @@ class Track:
 		# get car mask
 		car_mask = car.get_mask()
 		# calculate offset
-		offset = (round(car.position[0]), round(car.position[1]))
+		#print(self.image.get_rect().topleft)
+		offset = (-round(car.position[0]), -round(car.position[1]) - 18)
 		# check collision
 		collide = car_mask.overlap(self.mask, offset)
 
@@ -212,7 +227,7 @@ def main():
 	pg.display.set_caption('The AI Drift King')
 
 	# initialize car
-	car = Car(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2)
+	car = Car(525, 550)
 
 	# initialize track
 	track = Track()
@@ -241,7 +256,7 @@ def main():
 				run = False	
 
 			# if keyboard is clicked
-			if event.type == pg.KEYDOWN:
+			if event.type == pg.KEYDOWN and not car.dead:
 				# if up is pressed
 				if event.key == pg.K_UP:
 					up = True
@@ -256,7 +271,7 @@ def main():
 					right = True	
 
 			# if keyboard is not clicked
-			if event.type == pg.KEYUP:
+			if event.type == pg.KEYUP and not car.dead:
 				# if up is not pressed
 				if event.key == pg.K_UP:
 					up = False
@@ -270,14 +285,18 @@ def main():
 				if event.key == pg.K_RIGHT:
 					right = False		
 							
+		# check if car went off track and kill car if it did\
+		"""
+		if track.collide(car):
+			car.dead = True	
+			up = False	
+			down = False
+			left = False
+			right = False
+		"""	
+
 		# move car			
 		car.move(up, down, left, right)
-
-		print(track.collide(car))
-
-		# check if car wen toff track
-		if track.collide(car):
-			print('collide')
 					
 		# update window			
 		update_window(window, car, track)	
