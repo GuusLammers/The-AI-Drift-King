@@ -15,6 +15,9 @@ CAR_BLUE = pg.transform.scale(pg.image.load(os.path.join('images', 'blue_car.png
 CAR_RED = pg.transform.scale(pg.image.load(os.path.join('images', 'red_car.png')), (24, 12))
 CAR_ORANGE = pg.transform.scale(pg.image.load(os.path.join('images', 'orange_car.png')), (24, 12))
 
+# line image
+LINE = pg.transform.scale(pg.image.load(os.path.join('images', 'line.png')), (WINDOW_WIDTH, WINDOW_HEIGHT))
+
 # colours
 WHITE = (255, 255, 255)
 RED = (0, 0, 255)
@@ -166,6 +169,15 @@ class Car:
 		pg.draw.line(window, RED, center, (center[0] + 300 * math.cos(math.radians(self.car_angle - 45)), center[1] + 300 * math.sin(math.radians(self.car_angle - 45))))
 		pg.draw.line(window, RED, center, (center[0] + 300 * math.cos(math.radians(self.car_angle + 45)), center[1] + 300 * math.sin(math.radians(self.car_angle + 45))))
 
+		rotate_line_parallel = pg.transform.rotate(LINE, -self.car_angle)
+
+		#window.blit(rotate_line_parallel, center)
+
+		# get masks of lines
+
+		# calculate offset
+		#offset = 
+
 	# draw car		
 	def draw (self, window):
 		# rotate image
@@ -197,7 +209,6 @@ class Track:
 		# get car mask
 		car_mask = car.get_mask()
 		# calculate offset
-		#print(self.image.get_rect().topleft)
 		offset = (-round(car.position[0]), -round(car.position[1]) - 18)
 		# check collision
 		collide = car_mask.overlap(self.mask, offset)
